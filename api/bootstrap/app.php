@@ -12,19 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-                // Registrar middleware global
+        // CORS en todas las respuestas
         $middleware->append(Cors::class);
-        
-        // O si prefieres asignarlo a un grupo específico
-        $middleware->api(prepend: [
-            Cors::class,
-        ]);
-        
-        // Alternativa: para todas las rutas API
-        $middleware->group('api', [
-            Cors::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
+
+        // Nota: la API se autentica con tokens Bearer (Sanctum), no con cookies de sesión.
+        // No se usa EnsureFrontendRequestsAreStateful: la app web se sirve desde el mismo dominio
+        // y ese middleware le exigiría un token CSRF ("CSRF token mismatch").
 
         $middleware->alias([
             'establishment.admin' => \App\Http\Middleware\EnsureEstablishmentAdmin::class,
