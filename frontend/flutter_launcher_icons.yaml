@@ -1,0 +1,16 @@
+# Configuración del icono de la app. No hace falta tocarla: para cambiar el icono
+# sustituye assets/icons/iconbg.png y ejecuta ./update_icons.sh
+# (el color de fondo también se cambia en update_icons.sh).
+flutter_launcher_icons:
+  image_path: "assets/icons/generated/app_icon.png"
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#EAECF7"
+  adaptive_icon_foreground: "assets/icons/generated/app_icon_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/icons/generated/app_icon.png"
+    background_color: "#EAECF7"
+    theme_color: "#B5542D"
