@@ -2,12 +2,30 @@
 
 namespace App\Models;
 
+use App\Support\Media;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Utensil extends Model
 {
     protected $fillable = ['name', 'description', 'image'];
+
+    protected static function booted(): void
+    {
+        static::updated(function (Utensil $utensil) {
+            if ($utensil->wasChanged('image')) {
+                Media::delete($utensil->getOriginal('image'));
+            }
+        });
+        static::deleted(fn (Utensil $utensil) => Media::delete($utensil->image));
+    }
+
+    /** Cócteles (de la biblioteca y de los locales) que usan este utensilio. */
+    public function cocktails(): BelongsToMany
+    {
+        return $this->belongsToMany(Cocktail::class);
+    }
 
     /**
      * Utensilios propios del establecimiento + los globales que no haya personalizado
