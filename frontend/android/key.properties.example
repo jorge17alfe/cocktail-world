@@ -1,0 +1,6 @@
+# Copia este archivo como android/key.properties (NO se sube a git) y rellénalo.
+# storeFile: ruta completa a tu llave .jks (guárdala fuera del proyecto y haz copia de seguridad).
+storePassword=CONTRASEÑA_DEL_ALMACEN
+keyPassword=CONTRASEÑA_DE_LA_LLAVE
+keyAlias=cocktail-world
+storeFile=/home/alocraise/claves/cocktail-world.jks

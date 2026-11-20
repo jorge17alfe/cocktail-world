@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Solo en la versión de pruebas: permite conectar con el servidor de casa por http:// -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>
