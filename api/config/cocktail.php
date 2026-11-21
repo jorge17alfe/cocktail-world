@@ -7,4 +7,10 @@ return [
     | Vacío (en local): el panel está en /gestion del mismo servidor.
     */
     'admin_panel_domain' => env('ADMIN_PANEL_DOMAIN'),
+
+    /*
+    | Email de contacto por defecto para los locales. Se puede cambiar desde
+    | el panel de gestión (Perfil → Plataforma) sin tocar el servidor.
+    */
+    'support_email' => env('SUPPORT_EMAIL', 'alocraise@gmail.com'),
 ];

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Admin\CocktailController;
 use App\Http\Controllers\Api\V1\Admin\CocktailImageController;
 use App\Http\Controllers\Api\V1\Admin\FamilyController;
 use App\Http\Controllers\Api\V1\Admin\LibraryController;
+use App\Http\Controllers\Api\V1\Admin\SupportController;
 use App\Http\Controllers\Api\V1\Admin\UtensilController;
 
 // Ruta de salud para verificar que la API está funcionando
@@ -76,5 +77,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/library', [LibraryController::class, 'index']);
         Route::get('/library/{id}', [LibraryController::class, 'show'])->whereNumber('id');
         Route::post('/library/copy', [LibraryController::class, 'copy']);
+
+        Route::get('/support', [SupportController::class, 'show']);
     });
 });

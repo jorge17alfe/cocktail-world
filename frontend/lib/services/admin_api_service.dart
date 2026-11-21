@@ -184,6 +184,9 @@ class AdminApiService {
     return (json['data'] as List).length;
   }
 
+  /// Email de Alocraise para que los locales pidan cócteles (se cambia en el panel de gestión).
+  Future<String> supportEmail() async => (await _api.get('/admin/support'))['data']['email'] as String;
+
   List<T> _list<T>(Map<String, dynamic> json, T Function(Map<String, dynamic>) parse) =>
       (json['data'] as List).map((e) => parse(e as Map<String, dynamic>)).toList();
 }

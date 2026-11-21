@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use App\Filament\Widgets\PlatformStats;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
@@ -21,7 +22,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
- * Panel de gestión de Alocraise (superadmin): biblioteca, establecimientos, propuestas, planes...
+ * Panel de gestión de Alocraise (superadmin): biblioteca, establecimientos, ajustes, planes...
  * Solo entran usuarios con rol "superadmin" (ver User::canAccessPanel) y con 2FA obligatorio.
  */
 class GestionPanelProvider extends PanelProvider
@@ -41,7 +42,7 @@ class GestionPanelProvider extends PanelProvider
                 'primary' => Color::hex('#B5542D'), // mismo terracota que la app
             ])
             ->login()
-            ->profile()
+            ->profile(EditProfile::class)
             // Verificación en dos pasos con app de autenticación (Google Authenticator, Authy...)
             ->multiFactorAuthentication([
                 AppAuthentication::make()

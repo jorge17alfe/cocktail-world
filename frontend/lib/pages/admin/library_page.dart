@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/cocktail_models.dart';
 import '../../services/admin_api_service.dart';
@@ -15,7 +16,10 @@ class LibraryPage extends StatefulWidget {
   final Family family;
   final AdminApiService? api;
 
-  const LibraryPage({super.key, required this.session, required this.family, this.api});
+  /// Abre el email de "¿Echas de menos un cóctel?" (se sustituye en los tests).
+  final Future<bool> Function(Uri uri)? openUrl;
+
+  const LibraryPage({super.key, required this.session, required this.family, this.api, this.openUrl});
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -31,6 +35,7 @@ class _LibraryPageState extends State<LibraryPage> {
   String _query = '';
   String? _group;
   bool _copying = false;
+  String? _supportEmail;
 
   @override
   void initState() {
@@ -40,6 +45,7 @@ class _LibraryPageState extends State<LibraryPage> {
 
   Future<void> _load() async {
     setState(() => _error = null);
+    _loadSupportEmail();
     try {
       final results = await Future.wait([_api.library(), _api.cocktails()]);
       if (!mounted) return;
@@ -51,6 +57,37 @@ class _LibraryPageState extends State<LibraryPage> {
       if (mounted) setState(() => _error = e);
     }
   }
+
+  /// Si falla no pasa nada: simplemente no se muestra el aviso.
+  Future<void> _loadSupportEmail() async {
+    try {
+      final email = await _api.supportEmail();
+      if (mounted) setState(() => _supportEmail = email);
+    } catch (_) {}
+  }
+
+  Future<void> _askForCocktail() async {
+    final email = _supportEmail;
+    if (email == null) return;
+    final local = widget.session.establishment;
+    final wanted = _query.trim();
+    final uri = Uri(
+      scheme: 'mailto',
+      path: email,
+      query: _encodeQuery({
+        'subject': 'Cocktail World: cóctel para la biblioteca',
+        'body':
+            'Me gustaría que añadierais a la biblioteca: $wanted'
+            '\n\nLocal: ${local.name} (nº ${local.code})',
+      }),
+    );
+    final opened = await (widget.openUrl ?? launchUrl)(uri);
+    if (!opened && mounted) showSnack(context, 'No se pudo abrir el correo. Escríbenos a $email', error: true);
+  }
+
+  /// mailto necesita %20 para los espacios (Uri.queryParameters los convierte en "+").
+  static String _encodeQuery(Map<String, String> params) =>
+      params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
 
   static String _normalize(String s) => s
       .toLowerCase()
@@ -182,21 +219,59 @@ class _LibraryPageState extends State<LibraryPage> {
                   ),
                   Expanded(
                     child: visible.isEmpty
-                        ? const EmptyView(icon: Icons.search_off, message: 'Ningún cóctel coincide')
+                        ? ListView(
+                            children: [
+                              const SizedBox(
+                                height: 280,
+                                child: EmptyView(icon: Icons.search_off, message: 'Ningún cóctel coincide'),
+                              ),
+                              if (_supportEmail != null)
+                                _MissingCocktailTile(email: _supportEmail!, onTap: _askForCocktail),
+                            ],
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.only(bottom: 16),
-                            itemCount: visible.length,
-                            itemBuilder: (context, i) => _LibraryTile(
-                              cocktail: visible[i],
-                              selected: _selected.contains(visible[i].id),
-                              alreadyCopied: _alreadyCopied.contains(visible[i].id),
-                              onToggle: () => _toggle(visible[i].id),
-                              onPreview: () => _preview(visible[i]),
-                            ),
+                            itemCount: visible.length + (_supportEmail != null ? 1 : 0),
+                            itemBuilder: (context, i) => i == visible.length
+                                ? _MissingCocktailTile(email: _supportEmail!, onTap: _askForCocktail)
+                                : _LibraryTile(
+                                    cocktail: visible[i],
+                                    selected: _selected.contains(visible[i].id),
+                                    alreadyCopied: _alreadyCopied.contains(visible[i].id),
+                                    onToggle: () => _toggle(visible[i].id),
+                                    onPreview: () => _preview(visible[i]),
+                                  ),
                           ),
                   ),
                 ],
               ),
+      ),
+    );
+  }
+}
+
+/// Al final de la biblioteca: pedir a Alocraise un cóctel que falta.
+class _MissingCocktailTile extends StatelessWidget {
+  final String email;
+  final VoidCallback onTap;
+
+  const _MissingCocktailTile({required this.email, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Card(
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Icon(Icons.local_bar_outlined, color: theme.colorScheme.primary),
+          title: const Text('¿Echas de menos un cóctel?', style: TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: Text('Escríbenos a $email y lo añadimos a la biblioteca'),
+          trailing: const Icon(Icons.mail_outline),
+        ),
       ),
     );
   }
