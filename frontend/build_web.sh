@@ -4,6 +4,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Borra la caché de compilación: si no, Flutter puede reutilizar una lista de plugins
+# web antigua y un paquete añadido después (p. ej. url_launcher) no funciona en la web.
+rm -rf .dart_tool/flutter_build
+
 flutter build web --release --base-href /app/
 
 rm -rf ../api/public/app

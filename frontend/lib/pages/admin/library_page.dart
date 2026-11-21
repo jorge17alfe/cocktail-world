@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,10 +20,7 @@ class LibraryPage extends StatefulWidget {
   /// Abre el email de "¿Echas de menos un cóctel?" (se sustituye en los tests).
   final Future<bool> Function(Uri uri)? openUrl;
 
-  /// En la web se muestran opciones (copiar, Gmail, app de correo). Por defecto: kIsWeb.
-  final bool? isWeb;
-
-  const LibraryPage({super.key, required this.session, required this.family, this.api, this.openUrl, this.isWeb});
+  const LibraryPage({super.key, required this.session, required this.family, this.api, this.openUrl});
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -81,11 +77,8 @@ class _LibraryPageState extends State<LibraryPage> {
         '\n\nLocal: ${local.name} (nº ${local.code})';
     final mailto = Uri(scheme: 'mailto', path: email, query: _encodeQuery({'subject': subject, 'body': body}));
 
-    // En el móvil el sistema ofrece las apps de correo instaladas.
-    if (!(widget.isWeb ?? kIsWeb)) return _open(mailto, email);
-
-    // En el navegador, mailto solo funciona si el ordenador tiene un correo configurado:
-    // damos alternativas.
+    // Mismas opciones en el móvil y en la web: mailto solo funciona si hay una app de
+    // correo configurada (en un PC muchas veces no la hay).
     final gmail = Uri.parse(
       'https://mail.google.com/mail/?${_encodeQuery({'view': 'cm', 'fs': '1', 'to': email, 'su': subject, 'body': body})}',
     );

@@ -48,14 +48,13 @@ AdminApiService _api({bool supportFails = false}) => AdminApiService(
   }),
 );
 
-Widget _app(AdminApiService api, Future<bool> Function(Uri) openUrl, {bool isWeb = false}) => MaterialApp(
+Widget _app(AdminApiService api, Future<bool> Function(Uri) openUrl) => MaterialApp(
   theme: AppTheme.light(),
   home: LibraryPage(
     session: _session,
     family: const Family(id: 3, name: 'Clásicos'),
     api: api,
     openUrl: openUrl,
-    isWeb: isWeb,
   ),
 );
 
@@ -79,6 +78,8 @@ void main() {
     expect(find.text('Ningún cóctel coincide'), findsOneWidget);
     await tester.tap(find.text('¿Echas de menos un cóctel?'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Abrir mi app de correo'));
+    await tester.pumpAndSettle();
 
     expect(opened!.scheme, 'mailto');
     expect(opened!.path, 'soporte@alocraise.com');
@@ -97,13 +98,13 @@ void main() {
     expect(find.text('¿Echas de menos un cóctel?'), findsNothing);
   });
 
-  testWidgets('en la web ofrece copiar el email, Gmail o la app de correo', (tester) async {
+  testWidgets('ofrece copiar el email, Gmail o la app de correo', (tester) async {
     final opened = <Uri>[];
     await tester.pumpWidget(
       _app(_api(), (uri) async {
         opened.add(uri);
         return true;
-      }, isWeb: true),
+      }),
     );
     await tester.pumpAndSettle();
 
