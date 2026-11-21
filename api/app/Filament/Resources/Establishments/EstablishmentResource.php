@@ -77,9 +77,6 @@ class EstablishmentResource extends Resource
                 TextEntry::make('families_count')->label('Familias'),
                 TextEntry::make('cocktails_count')->label('Cócteles'),
                 TextEntry::make('created_at')->label('Alta')->dateTime('d/m/Y H:i'),
-                Toggle::make('show_branding')->label('Firma "Carta creada con Cocktail World"')
-                    ->helperText('Aparece al final de su carta pública con enlaces al recetario y al alta de locales. '
-                        .'Solo se oculta si su plan lo permite (p. ej. Pro).'),
                 TextEntry::make('public_url')->label('Carta pública')
                     ->state(fn (Establishment $record) => self::publicUrl($record))
                     ->url(fn (Establishment $record) => self::publicUrl($record), shouldOpenInNewTab: true)
@@ -101,6 +98,10 @@ class EstablishmentResource extends Resource
                 TextEntry::make('effective_plan')->label('Límites que se aplican ahora')->columnSpanFull()
                     ->state(fn (?Establishment $record) => $record ? self::effectivePlanText($record) : null)
                     ->color(fn (?Establishment $record) => $record && ! $record->subscriptionIsCurrent() ? 'danger' : null),
+                Toggle::make('show_branding')->label('Firma "Carta creada con Cocktail World"')
+                    ->helperText('Aparece al final de su carta pública con enlaces al recetario y al alta de locales. '
+                        .'Solo se oculta si su plan lo permite (p. ej. Pro).')
+                    ->columnSpanFull(),
                 Textarea::make('subscription_notes')->label('Notas internas')->rows(2)->columnSpanFull()
                     ->placeholder('Ej.: precio especial, pago por transferencia...'),
             ]),
