@@ -14,7 +14,17 @@ class Establishment {
   /// Enlace de la carta web (el que lleva el QR).
   final String? publicUrl;
 
-  const Establishment({required this.id, required this.code, required this.name, this.logoUrl, this.publicUrl});
+  /// Firma "Carta creada con Cocktail World" al final de la carta pública.
+  final bool showBranding;
+
+  const Establishment({
+    required this.id,
+    required this.code,
+    required this.name,
+    this.logoUrl,
+    this.publicUrl,
+    this.showBranding = true,
+  });
 
   factory Establishment.fromJson(Map<String, dynamic> json) => Establishment(
         id: json['id'] as int,
@@ -22,9 +32,17 @@ class Establishment {
         name: json['name'] as String? ?? '',
         logoUrl: json['logo_url'] as String?,
         publicUrl: json['public_url'] as String?,
+        showBranding: json['show_branding'] as bool? ?? true,
       );
 
-  Map<String, dynamic> toJson() => {'id': id, 'code': code, 'name': name, 'logo_url': logoUrl, 'public_url': publicUrl};
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'code': code,
+        'name': name,
+        'logo_url': logoUrl,
+        'public_url': publicUrl,
+        'show_branding': showBranding,
+      };
 }
 
 class Family {
@@ -95,12 +113,9 @@ class Ingredient {
       );
 
   /// "50 ml", "0,5 unidad", "3 golpes" o "" si no hay cantidad.
-  String get quantity => quantityFor(1);
-
-  /// Cantidad para [servings] copas (multiplica la cantidad, la unidad no cambia).
-  String quantityFor(int servings) {
+  String get quantity {
     final parts = <String>[
-      if (amount != null) formatAmount(amount! * servings),
+      if (amount != null) formatAmount(amount!),
       if (unit != null && unit!.isNotEmpty) unit!,
     ];
     return parts.join(' ');

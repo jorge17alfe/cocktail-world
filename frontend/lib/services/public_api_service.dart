@@ -47,6 +47,23 @@ class PublicApiService {
     return (cocktail: Cocktail.fromJson(json['data']), offlineSince: since);
   }
 
+  /// Recetario público: todos los clásicos de la biblioteca.
+  Future<({List<CocktailSummary> cocktails, DateTime? offlineSince})> getRecipeBook() async {
+    final (json, since) = await _get('/public/library', notFound: 'El recetario no está disponible');
+
+    return (
+      cocktails: (json['data'] as List).map((c) => CocktailSummary.fromJson(c)).toList(),
+      offlineSince: since,
+    );
+  }
+
+  Future<CocktailData> getRecipe(int cocktailId) async {
+    final (json, since) = await _get('/public/library/$cocktailId',
+        notFound: 'Este cóctel ya no está en el recetario');
+
+    return (cocktail: Cocktail.fromJson(json['data']), offlineSince: since);
+  }
+
   /// Descarga la carta entera (familias + todas las fichas) para tenerla sin conexión.
   /// Devuelve cuántos cócteles se han guardado.
   Future<int> downloadAll(String code, {void Function(int done, int total)? onProgress}) async {

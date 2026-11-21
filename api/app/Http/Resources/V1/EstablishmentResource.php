@@ -17,6 +17,8 @@ class EstablishmentResource extends JsonResource
             'logo_url' => Media::url($this->logo),
             // Enlace de la carta web (el que lleva el QR)
             'public_url' => route('carta.show', $this->code),
+            // Firma "Carta creada con Cocktail World" al final de la carta
+            'show_branding' => $this->show_branding ?? true,
         ];
     }
 }

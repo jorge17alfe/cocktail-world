@@ -42,15 +42,11 @@ void main() {
     expect(ScanQrPage.codeFrom(null), isNull);
   });
 
-  test('cantidades para varias copas', () {
-    const ginebra = Ingredient(name: 'Ginebra', amount: 30, unit: 'ml');
-    const lima = Ingredient(name: 'Lima', amount: 0.5, unit: 'unidad');
-    const angostura = Ingredient(name: 'Angostura', amount: 0.33, unit: 'golpes');
-    expect(ginebra.quantityFor(4), '120 ml');
-    expect(lima.quantityFor(1), '0,5 unidad');
-    expect(lima.quantityFor(2), '1 unidad');
-    expect(angostura.quantityFor(3), '1 golpes');
-    expect(const Ingredient(name: 'Soda').quantityFor(4), '');
+  test('cantidades de una copa', () {
+    expect(const Ingredient(name: 'Ginebra', amount: 30, unit: 'ml').quantity, '30 ml');
+    expect(const Ingredient(name: 'Lima', amount: 0.5, unit: 'unidad').quantity, '0,5 unidad');
+    expect(const Ingredient(name: 'Angostura', amount: 2, unit: 'golpes').quantity, '2 golpes');
+    expect(const Ingredient(name: 'Soda').quantity, '');
   });
 
   group('Sin conexión', () {
@@ -93,7 +89,7 @@ void main() {
     });
   });
 
-  testWidgets('la ficha multiplica las cantidades al elegir ×2', (tester) async {
+  testWidgets('la ficha muestra las cantidades de una copa, sin multiplicador', (tester) async {
     final api = PublicApiService(
       baseUrl: 'http://test/api/v1',
       client: MockClient((_) async => http.Response(jsonEncode({'success': true, 'data': _cocktail}), 200, headers: _utf8)),
@@ -105,12 +101,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('30 ml'), findsOneWidget);
-    await tester.ensureVisible(find.text('×2'));
-    await tester.tap(find.text('×2'));
-    await tester.pumpAndSettle();
-    expect(find.text('60 ml'), findsOneWidget);
-    expect(find.text('1 unidad'), findsOneWidget);
+    expect(find.text('0,5 unidad'), findsOneWidget);
     expect(find.text('para completar'), findsOneWidget);
+    expect(find.text('×2'), findsNothing);
+    expect(find.text('Copas'), findsNothing);
   });
 
   testWidgets('el QR lleva a la carta web del local', (tester) async {

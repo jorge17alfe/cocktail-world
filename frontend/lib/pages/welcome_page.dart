@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'admin/admin_gate.dart';
 import 'public/enter_code_page.dart';
+import 'public/recipe_book_page.dart';
+import '../services/public_api_service.dart';
 import '../widgets/images/icons/app_icon.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -51,7 +53,20 @@ class WelcomePage extends StatelessWidget {
                     icon: const Icon(Icons.admin_panel_settings_outlined),
                     label: const Text('Acceso administrador', style: TextStyle(fontSize: 17)),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 20),
+                  // Secundario a propósito: la app es para las cartas de los locales
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => RecipeBookPage(api: PublicApiService())),
+                      ),
+                      style: TextButton.styleFrom(foregroundColor: scheme.onSurfaceVariant),
+                      icon: const Icon(Icons.menu_book_outlined, size: 20),
+                      label: const Text('Recetario de cócteles'),
+                    ),
+                  ),
+                  const SizedBox(height: 28),
                   Text('Desarrollado por Alocraise',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant, letterSpacing: 0.5)),

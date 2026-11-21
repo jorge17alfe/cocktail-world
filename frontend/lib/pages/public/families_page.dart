@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/establishment_store.dart';
 import '../../services/public_api_service.dart';
 import '../../widgets/public/async_state.dart';
+import '../../widgets/public/branding_footer.dart';
 import '../../widgets/public/cards.dart';
 import '../../widgets/public/offline_banner.dart';
 import 'enter_code_page.dart';
@@ -129,32 +130,41 @@ class _FamiliesPageState extends State<FamiliesPage> {
             ? const LoadingView()
             : RefreshIndicator(
                 onRefresh: _load,
-                child: data.families.isEmpty
-                    ? ListView(
-                        children: const [
-                          SizedBox(height: 120),
-                          EmptyView(icon: Icons.local_bar_outlined, message: 'Este local todavía no tiene cócteles'),
-                        ],
-                      )
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 280,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 0.85,
+                child: CustomScrollView(
+                  slivers: [
+                    if (data.families.isEmpty)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 120, bottom: 40),
+                          child: EmptyView(icon: Icons.local_bar_outlined, message: 'Este local todavía no tiene cócteles'),
                         ),
-                        itemCount: data.families.length,
-                        itemBuilder: (context, i) => FamilyCard(
-                          family: data.families[i],
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  FamilyCocktailsPage(code: widget.code, family: data.families[i], api: widget.api),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.all(16),
+                        sliver: SliverGrid.builder(
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 280,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 0.85,
+                          ),
+                          itemCount: data.families.length,
+                          itemBuilder: (context, i) => FamilyCard(
+                            family: data.families[i],
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    FamilyCocktailsPage(code: widget.code, family: data.families[i], api: widget.api),
+                              ),
                             ),
                           ),
                         ),
                       ),
+                    // Firma discreta al final (más adelante un local podrá ocultarla con un plan de pago)
+                    if (data.establishment.showBranding) SliverToBoxAdapter(child: BrandingFooter(api: widget.api)),
+                  ],
+                ),
               ),
       ),
     );

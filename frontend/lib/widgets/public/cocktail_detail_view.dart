@@ -245,49 +245,20 @@ class _NoInfo extends StatelessWidget {
       );
 }
 
-/// Ingredientes con selector de nº de copas: multiplica las cantidades (útil para rondas o jarras).
-class _IngredientsView extends StatefulWidget {
+/// Ingredientes con su cantidad para una copa.
+class _IngredientsView extends StatelessWidget {
   final List<Ingredient> ingredients;
 
   const _IngredientsView({required this.ingredients});
 
   @override
-  State<_IngredientsView> createState() => _IngredientsViewState();
-}
-
-class _IngredientsViewState extends State<_IngredientsView> {
-  static const _options = [1, 2, 4, 6, 8];
-  int _servings = 1;
-
-  @override
   Widget build(BuildContext context) {
-    final ingredients = widget.ingredients;
     if (ingredients.isEmpty) return const _NoInfo('Sin ingredientes registrados');
     final theme = Theme.of(context);
-    final hasAmounts = ingredients.any((i) => i.amount != null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (hasAmounts)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(children: [
-              Text('Copas', style: theme.textTheme.titleSmall),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SegmentedButton<int>(
-                    showSelectedIcon: false,
-                    segments: [for (final n in _options) ButtonSegment(value: n, label: Text('×$n'))],
-                    selected: {_servings},
-                    onSelectionChanged: (s) => setState(() => _servings = s.first),
-                  ),
-                ),
-              ),
-            ]),
-          ),
         Card(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -302,7 +273,7 @@ class _IngredientsViewState extends State<_IngredientsView> {
                       children: [
                         SizedBox(
                           width: 96,
-                          child: Text(ing.quantityFor(_servings),
+                          child: Text(ing.quantity,
                               style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
                         ),

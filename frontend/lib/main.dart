@@ -5,6 +5,8 @@ import 'app_navigator.dart';
 import 'deep_link.dart';
 import 'pages/public/cocktail_detail_page.dart';
 import 'pages/public/families_page.dart';
+import 'pages/public/recipe_book_page.dart';
+import 'pages/public/recipe_detail_page.dart';
 import 'pages/admin/admin_login_page.dart';
 import 'pages/welcome_page.dart';
 import 'services/admin_session.dart';
@@ -45,7 +47,16 @@ void _handleExpiredSessions() {
 /// /carta/100001/c/16 → ficha del cóctel (con flecha para ir a la carta).
 /// Es la pantalla inicial y no un push, porque en web el navegador hace un "atrás" al arrancar
 /// que cerraría una pantalla abierta en ese momento.
+/// Igual con el recetario: /recetario y /recetario/c/12.
 Widget _initialPage() {
+  final recipe = kIsWeb ? parseRecetarioPath(Uri.base.path) : null;
+  if (recipe != null) {
+    final id = recipe.cocktailId;
+    return id == null
+        ? RecipeBookPage(api: PublicApiService())
+        : RecipeDetailPage(cocktailId: id, api: PublicApiService());
+  }
+
   final link = kIsWeb ? parseCartaPath(Uri.base.path) : null;
   if (link == null) return const WelcomePage();
 

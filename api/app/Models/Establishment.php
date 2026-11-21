@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Establishment extends Model
 {
-    protected $fillable = ['code', 'name', 'logo', 'is_active'];
+    protected $fillable = ['code', 'name', 'logo', 'is_active', 'show_branding'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'show_branding' => 'boolean'];
 
     public function users(): HasMany
     {

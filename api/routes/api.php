@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController as V1Auth;
 use App\Http\Controllers\Api\V1\PublicController;
+use App\Http\Controllers\Api\V1\RecipeBookController;
 use App\Http\Controllers\Api\V1\Admin\CocktailController;
 use App\Http\Controllers\Api\V1\Admin\CocktailImageController;
 use App\Http\Controllers\Api\V1\Admin\FamilyController;
@@ -39,6 +40,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/logout', [V1Auth::class, 'logout']);
             Route::put('/password', [V1Auth::class, 'changePassword'])->middleware('throttle:10,1');
         });
+    });
+
+    // Recetario público: la biblioteca de clásicos para cualquiera (sin login, solo lectura).
+    // Va antes que public/{code} para que "library" no se tome como número de local.
+    Route::prefix('public/library')->middleware('throttle:120,1')->group(function () {
+        Route::get('/', [RecipeBookController::class, 'index']);
+        Route::get('/{id}', [RecipeBookController::class, 'show'])->whereNumber('id');
     });
 
     // Vista pública: clientes y camareros (sin login, solo lectura)

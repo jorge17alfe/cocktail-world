@@ -12,6 +12,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -70,6 +71,8 @@ class EstablishmentResource extends Resource
                 TextEntry::make('families_count')->label('Familias'),
                 TextEntry::make('cocktails_count')->label('Cócteles'),
                 TextEntry::make('created_at')->label('Alta')->dateTime('d/m/Y H:i'),
+                Toggle::make('show_branding')->label('Firma "Carta creada con Cocktail World"')
+                    ->helperText('Aparece al final de su carta pública con enlaces al recetario y al alta de locales.'),
                 TextEntry::make('public_url')->label('Carta pública')
                     ->state(fn (Establishment $record) => self::publicUrl($record))
                     ->url(fn (Establishment $record) => self::publicUrl($record), shouldOpenInNewTab: true)

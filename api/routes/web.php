@@ -13,3 +13,5 @@ Route::get('/app', WebAppController::class);
 Route::get('/carta/{code}/{rest?}', WebAppController::class)
     ->where(['code' => '\d{4,12}', 'rest' => '.*'])
     ->name('carta.show');
+// Recetario público: /recetario y /recetario/c/{cóctel}
+Route::get('/recetario/{rest?}', WebAppController::class)->where('rest', '.*')->name('recetario');
