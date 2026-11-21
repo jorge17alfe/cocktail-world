@@ -21,42 +21,53 @@ http.Response _json(Object body, [int status = 200]) =>
     http.Response(jsonEncode(body), status, headers: {'content-type': 'application/json; charset=utf-8'});
 
 AdminApiService _api({bool supportFails = false}) => AdminApiService(
-      token: 't0ken',
-      baseUrl: 'http://test/api/v1',
-      client: MockClient((req) async {
-        switch (req.url.path) {
-          case '/api/v1/admin/library':
-            return _json({
-              'data': [
-                {'id': 1, 'name': 'Mojito', 'tags': ['Clásicos', 'Ron']},
-              ],
-            });
-          case '/api/v1/admin/cocktails':
-            return _json({'data': []});
-          case '/api/v1/admin/support':
-            return supportFails ? _json({'message': 'Error'}, 500) : _json({'data': {'email': 'soporte@alocraise.com'}});
-        }
-        return _json({'message': 'no encontrado'}, 404);
-      }),
-    );
+  token: 't0ken',
+  baseUrl: 'http://test/api/v1',
+  client: MockClient((req) async {
+    switch (req.url.path) {
+      case '/api/v1/admin/library':
+        return _json({
+          'data': [
+            {
+              'id': 1,
+              'name': 'Mojito',
+              'tags': ['Clásicos', 'Ron'],
+            },
+          ],
+        });
+      case '/api/v1/admin/cocktails':
+        return _json({'data': []});
+      case '/api/v1/admin/support':
+        return supportFails
+            ? _json({'message': 'Error'}, 500)
+            : _json({
+                'data': {'email': 'soporte@alocraise.com'},
+              });
+    }
+    return _json({'message': 'no encontrado'}, 404);
+  }),
+);
 
-Widget _app(AdminApiService api, Future<bool> Function(Uri) openUrl) => MaterialApp(
-      theme: AppTheme.light(),
-      home: LibraryPage(
-        session: _session,
-        family: const Family(id: 3, name: 'Clásicos'),
-        api: api,
-        openUrl: openUrl,
-      ),
-    );
+Widget _app(AdminApiService api, Future<bool> Function(Uri) openUrl, {bool isWeb = false}) => MaterialApp(
+  theme: AppTheme.light(),
+  home: LibraryPage(
+    session: _session,
+    family: const Family(id: 3, name: 'Clásicos'),
+    api: api,
+    openUrl: openUrl,
+    isWeb: isWeb,
+  ),
+);
 
 void main() {
   testWidgets('"¿Echas de menos un cóctel?" abre un email con lo buscado y el local', (tester) async {
     Uri? opened;
-    await tester.pumpWidget(_app(_api(), (uri) async {
-      opened = uri;
-      return true;
-    }));
+    await tester.pumpWidget(
+      _app(_api(), (uri) async {
+        opened = uri;
+        return true;
+      }),
+    );
     await tester.pumpAndSettle();
 
     expect(find.text('Mojito'), findsOneWidget);
@@ -84,5 +95,33 @@ void main() {
 
     expect(find.text('Mojito'), findsOneWidget);
     expect(find.text('¿Echas de menos un cóctel?'), findsNothing);
+  });
+
+  testWidgets('en la web ofrece copiar el email, Gmail o la app de correo', (tester) async {
+    final opened = <Uri>[];
+    await tester.pumpWidget(
+      _app(_api(), (uri) async {
+        opened.add(uri);
+        return true;
+      }, isWeb: true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('¿Echas de menos un cóctel?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Copiar el email'), findsOneWidget);
+    expect(opened, isEmpty);
+
+    await tester.tap(find.text('Escribir con Gmail'));
+    await tester.pumpAndSettle();
+    expect(opened.single.host, 'mail.google.com');
+    expect(opened.single.queryParameters['to'], 'soporte@alocraise.com');
+    expect(opened.single.queryParameters['body'], contains('Bar Pepe (nº 100001)'));
+
+    await tester.tap(find.text('¿Echas de menos un cóctel?'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Abrir mi app de correo'));
+    await tester.pumpAndSettle();
+    expect(opened.last.scheme, 'mailto');
   });
 }

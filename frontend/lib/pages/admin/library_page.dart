@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/cocktail_models.dart';
@@ -19,7 +21,10 @@ class LibraryPage extends StatefulWidget {
   /// Abre el email de "¿Echas de menos un cóctel?" (se sustituye en los tests).
   final Future<bool> Function(Uri uri)? openUrl;
 
-  const LibraryPage({super.key, required this.session, required this.family, this.api, this.openUrl});
+  /// En la web se muestran opciones (copiar, Gmail, app de correo). Por defecto: kIsWeb.
+  final bool? isWeb;
+
+  const LibraryPage({super.key, required this.session, required this.family, this.api, this.openUrl, this.isWeb});
 
   @override
   State<LibraryPage> createState() => _LibraryPageState();
@@ -70,17 +75,64 @@ class _LibraryPageState extends State<LibraryPage> {
     final email = _supportEmail;
     if (email == null) return;
     final local = widget.session.establishment;
-    final wanted = _query.trim();
-    final uri = Uri(
-      scheme: 'mailto',
-      path: email,
-      query: _encodeQuery({
-        'subject': 'Cocktail World: cóctel para la biblioteca',
-        'body':
-            'Me gustaría que añadierais a la biblioteca: $wanted'
-            '\n\nLocal: ${local.name} (nº ${local.code})',
-      }),
+    const subject = 'Cocktail World: cóctel para la biblioteca';
+    final body =
+        'Me gustaría que añadierais a la biblioteca: ${_query.trim()}'
+        '\n\nLocal: ${local.name} (nº ${local.code})';
+    final mailto = Uri(scheme: 'mailto', path: email, query: _encodeQuery({'subject': subject, 'body': body}));
+
+    // En el móvil el sistema ofrece las apps de correo instaladas.
+    if (!(widget.isWeb ?? kIsWeb)) return _open(mailto, email);
+
+    // En el navegador, mailto solo funciona si el ordenador tiene un correo configurado:
+    // damos alternativas.
+    final gmail = Uri.parse(
+      'https://mail.google.com/mail/?${_encodeQuery({'view': 'cm', 'fs': '1', 'to': email, 'su': subject, 'body': body})}',
     );
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheet) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text('Escríbenos a $email', style: Theme.of(sheet).textTheme.titleMedium),
+            ),
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copiar el email'),
+              onTap: () async {
+                await Clipboard.setData(ClipboardData(text: email));
+                if (sheet.mounted) Navigator.pop(sheet);
+                if (mounted) showSnack(context, 'Email copiado: $email');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.open_in_new),
+              title: const Text('Escribir con Gmail'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _open(gmail, email);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.mail_outline),
+              title: const Text('Abrir mi app de correo'),
+              onTap: () {
+                Navigator.pop(sheet);
+                _open(mailto, email);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _open(Uri uri, String email) async {
     final opened = await (widget.openUrl ?? launchUrl)(uri);
     if (!opened && mounted) showSnack(context, 'No se pudo abrir el correo. Escríbenos a $email', error: true);
   }
