@@ -9,6 +9,7 @@ import '../../widgets/public/async_state.dart';
 import '../../widgets/public/cards.dart';
 import '../public/families_page.dart';
 import 'admin_family_page.dart';
+import 'change_password_page.dart';
 import 'family_form_dialog.dart';
 import 'qr_page.dart';
 import 'utensils_page.dart';
@@ -148,6 +149,11 @@ class _AdminFamiliesPageState extends State<AdminFamiliesPage> {
                   context,
                 ).push(MaterialPageRoute(builder: (_) => UtensilsPage(session: widget.session))),
                 child: const ListTile(leading: Icon(Icons.blender_outlined), title: Text('Utensilios')),
+              ),
+              PopupMenuItem(
+                onTap: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => ChangePasswordPage(session: widget.session))),
+                child: const ListTile(leading: Icon(Icons.lock_reset), title: Text('Cambiar contraseña')),
               ),
               PopupMenuItem(
                 onTap: _logout,

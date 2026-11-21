@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -64,6 +65,36 @@ class AuthController extends Controller
             'user' => $this->userPayload($user),
             'establishment' => new EstablishmentResource($user->establishment),
         ]);
+    }
+
+    /**
+     * Cambiar la propia contraseña (p. ej. tras recibir una temporal de Alocraise).
+     * Cierra las sesiones en los demás dispositivos; la actual sigue abierta.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'confirmed', Password::min(8), 'different:current_password'],
+        ], [
+            'password.different' => 'La nueva contraseña tiene que ser distinta de la actual.',
+            'password.confirmed' => 'Las contraseñas nuevas no coinciden.',
+            'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
+        ]);
+
+        $user = $request->user();
+        if (! Hash::check($data['current_password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La contraseña actual no es correcta',
+                'errors' => ['current_password' => ['La contraseña actual no es correcta']],
+            ], 422);
+        }
+
+        $user->update(['password' => $data['password']]);
+        $user->tokens()->where('id', '!=', $user->currentAccessToken()->id)->delete();
+
+        return response()->json(['success' => true, 'message' => 'Contraseña cambiada']);
     }
 
     public function logout(Request $request): JsonResponse

@@ -98,6 +98,13 @@ class AdminApiService {
     return AdminSession.fromAuthResponse(await _api.get('/auth/me'), token: token);
   }
 
+  /// Cambiar la propia contraseña. Cierra las sesiones en otros dispositivos (esta sigue abierta).
+  Future<void> changePassword({required String current, required String newPassword}) => _api.put('/auth/password', {
+        'current_password': current,
+        'password': newPassword,
+        'password_confirmation': newPassword,
+      });
+
   Future<void> logout() async {
     try {
       await _api.post('/auth/logout');

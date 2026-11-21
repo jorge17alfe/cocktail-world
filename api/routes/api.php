@@ -36,6 +36,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('auth:sanctum')->group(function () {
             Route::get('/me', [V1Auth::class, 'me']);
             Route::post('/logout', [V1Auth::class, 'logout']);
+            Route::put('/password', [V1Auth::class, 'changePassword'])->middleware('throttle:10,1');
         });
     });
 
