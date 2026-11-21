@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Support\PlanLimits;
 use App\Http\Requests\V1\ImageUploadRequest;
 use App\Models\Cocktail;
 use App\Support\Media;
@@ -18,6 +19,7 @@ class CocktailImageController extends AdminController
     {
         $cocktail = $this->cocktail($cocktailId);
         $files = $request->uploadedImages();
+        PlanLimits::ensureCanAddImages($cocktail, count($files));
 
         if ($cocktail->images()->count() + count($files) > self::MAX_IMAGES) {
             return response()->json([

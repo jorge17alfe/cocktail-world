@@ -36,6 +36,10 @@ class PlatformStats extends StatsOverviewWidget
             Stat::make('Cócteles este mes', (clone $localCocktails)->where('created_at', '>=', $monthStart)->count())
                 ->description('nuevos en las cartas')
                 ->icon('heroicon-o-plus-circle'),
+            Stat::make('Suscripciones', Establishment::where('subscription_status', Establishment::STATUS_PAST_DUE)->count().' con pago pendiente')
+                ->description(Establishment::where('subscription_status', Establishment::STATUS_TRIAL)->count().' en prueba · '
+                    .Establishment::where('subscription_status', Establishment::STATUS_ACTIVE)->count().' activas')
+                ->icon('heroicon-o-credit-card'),
             Stat::make('Biblioteca', Cocktail::library()->count().' cócteles')
                 ->description(Utensil::whereNull('establishment_id')->count().' utensilios · '
                     .User::where('role', User::ROLE_ADMIN)->count().' administradores de locales')

@@ -13,6 +13,12 @@ class Setting extends Model
 {
     public const SUPPORT_EMAIL = 'support_email';
 
+    /** Plan (slug) que reciben los locales nuevos. */
+    public const DEFAULT_PLAN = 'default_plan';
+
+    /** Plan (slug) que se aplica a un local cuya suscripción no está al día. */
+    public const FALLBACK_PLAN = 'fallback_plan';
+
     protected $primaryKey = 'key';
 
     public $incrementing = false;

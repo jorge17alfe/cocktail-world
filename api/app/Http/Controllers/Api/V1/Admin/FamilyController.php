@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Support\PlanLimits;
 use App\Http\Requests\V1\FamilyRequest;
 use App\Http\Requests\V1\ImageUploadRequest;
 use App\Http\Resources\V1\FamilyResource;
@@ -22,6 +23,7 @@ class FamilyController extends AdminController
     public function store(FamilyRequest $request): JsonResponse
     {
         $data = $request->validated();
+        PlanLimits::ensureCanAddFamilies($this->establishment());
         $data['order'] ??= $this->establishment()->families()->max('order') + 1;
 
         $family = $this->establishment()->families()->create($data);

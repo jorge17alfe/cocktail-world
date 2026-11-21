@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Support\PlanLimits;
 use App\Http\Resources\V1\CocktailResource;
 use App\Http\Resources\V1\CocktailSummaryResource;
 use App\Models\Cocktail;
@@ -44,15 +45,18 @@ class LibraryController extends AdminController
 
         $sources = Cocktail::library()->with(['images', 'ingredients', 'utensils'])
             ->whereIn('id', $data['cocktail_ids'])->get();
+        PlanLimits::ensureCanAddCocktails($establishment, $sources->count());
 
         // Utensilios globales que el local ha personalizado: global_id => propio_id
         $adopted = Utensil::where('establishment_id', $establishment->id)
             ->whereNotNull('source_utensil_id')->pluck('id', 'source_utensil_id');
 
-        $copies = DB::transaction(function () use ($sources, $data, $establishment, $adopted) {
+        $maxImages = PlanLimits::maxImagesPerCocktail($establishment);
+
+        $copies = DB::transaction(function () use ($sources, $data, $establishment, $adopted, $maxImages) {
             $order = (int) Cocktail::where('family_id', $data['family_id'])->max('order');
 
-            return $sources->map(function (Cocktail $source) use ($data, $establishment, $adopted, &$order) {
+            return $sources->map(function (Cocktail $source) use ($data, $establishment, $adopted, $maxImages, &$order) {
                 $copy = $source->replicate(['establishment_id', 'family_id', 'source_cocktail_id', 'order']);
                 $copy->establishment_id = $establishment->id;
                 $copy->family_id = $data['family_id'];
@@ -65,8 +69,9 @@ class LibraryController extends AdminController
                 }
                 $copy->utensils()->sync($source->utensils->pluck('id')->map(fn ($id) => $adopted[$id] ?? $id));
 
-                // Copia física de las fotos: así el local puede borrarlas sin afectar a la biblioteca
-                foreach ($source->images as $image) {
+                // Copia física de las fotos: así el local puede borrarlas sin afectar a la biblioteca.
+                // Solo tantas como permita su plan.
+                foreach ($source->images->take($maxImages) as $image) {
                     if ($path = Media::copy($image->path, $this->mediaDir("cocktails/{$copy->id}"))) {
                         $copy->images()->create(['path' => $path, 'order' => $image->order]);
                     }

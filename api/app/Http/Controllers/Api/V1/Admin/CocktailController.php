@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Support\PlanLimits;
 use App\Http\Requests\V1\CocktailRequest;
 use App\Http\Resources\V1\CocktailResource;
 use App\Http\Resources\V1\CocktailSummaryResource;
@@ -31,6 +32,7 @@ class CocktailController extends AdminController
     public function store(CocktailRequest $request): JsonResponse
     {
         $data = $request->validated();
+        PlanLimits::ensureCanAddCocktails($this->establishment());
 
         $cocktail = DB::transaction(function () use ($data) {
             $cocktail = new Cocktail(collect($data)->except(['ingredients', 'utensil_ids'])->all());
